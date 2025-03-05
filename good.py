@@ -12,7 +12,7 @@ with open("customer_churn_model.pkl", "rb") as model_file:
 with open("scaler.pkl", "rb") as scaler_file:
     scaler = pickle.load(scaler_file)
 
-# ตั้งค่าภาพ Background และสร้าง Frame ตรงกลางที่ปรับขนาดให้พอดีกับข้อความ
+# ตั้งค่าภาพ Background และสร้าง Frame ตรงกลางที่ครอบคลุมการเลือกหน้า
 st.markdown(
     """
     <style>
@@ -31,6 +31,21 @@ st.markdown(
     .stApp {
         background-color: transparent !important;
     }
+    .frame-box {
+        background: rgba(0, 0, 0, 0.7);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.3);
+        width: 60%;
+        min-height: 180vh;
+        margin: auto;
+        position: fixed;
+        top: 5%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: -1;
+        max-width: 1000px;
+    }
     </style>
     <div class="main"></div>
     <div class="frame-box"></div>
@@ -38,13 +53,15 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# สร้าง Sidebar
-st.sidebar.title("📌 Navigation")
-page = st.sidebar.radio("Go to", ["🔮 Predict", "📊 Model Performance", "🔥 Feature Importance"])
+# สร้าง frame สำหรับการเลือกหน้า
+with st.container():
+    st.markdown('<div class="radio-frame">', unsafe_allow_html=True)
+    page = st.radio("เลือกหน้าที่ต้องการเข้าถึง", ["🔮 ทำนายผล", "📊 ประสิทธิภาพของโมเดล", "🔥 ความสำคัญของฟีเจอร์", "👨‍💻 ผู้จัดทำ"], horizontal=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # หน้าทำนายผล
-if page == "🔮 Predict":
-    st.title("🔍 Customer Churn Prediction Web App")
+if page == "🔮 ทำนายผล":
+    st.title("🔮 Customer Churn Prediction")
     st.write("ป้อนข้อมูลของลูกค้าเพื่อดูว่ามีโอกาสเลิกใช้บริการหรือไม่")
 
     # สร้างอินพุตสำหรับผู้ใช้
@@ -77,7 +94,7 @@ if page == "🔮 Predict":
             st.success(f"✅ ลูกค้ารายนี้มีแนวโน้มที่จะอยู่ต่อ ({(1 - probability):.2%} ความน่าจะเป็น)")
 
 # หน้าค่าความแม่นยำและ Confusion Matrix
-elif page == "📊 Model Performance":
+elif page == "📊 ประสิทธิภาพของโมเดล":
     st.title("📊 Model Performance")
     st.write("แสดงค่าความแม่นยำของโมเดลและ Confusion Matrix")
 
@@ -87,6 +104,18 @@ elif page == "📊 Model Performance":
     st.metric(label="🔹 Accuracy", value=f"{accuracy:.4f}")
     st.metric(label="🔹 ROC AUC Score", value=f"{roc_auc:.4f}")
     
+    # แสดงตารางเปรียบเทียบโมเดล
+    model_comparison = {
+        "Model": ["Logistic Regression", "k-Nearest Neighbors", "Decision Tree", "Random Forest", "Gradient Boosting", "AdaBoost"],
+        "Accuracy": [0.9990, 0.9930, 0.9980, 0.9990, 0.9985, 0.9990],
+        "ROC AUC": [0.9996, 0.9970, 0.9978, 0.9998, 0.9995, 0.9995]
+    }
+    df_comparison = pd.DataFrame(model_comparison)
+
+    # แสดงตาราง
+    st.write("### Model Comparison")
+    st.dataframe(df_comparison, width=1000, height=245)
+
     # แสดง Confusion Matrix
     st.write("### Confusion Matrix")
     conf_matrix = np.array([[1606, 1], [1, 392]])  # สมมุติค่าจากโมเดล
@@ -97,7 +126,7 @@ elif page == "📊 Model Performance":
     st.pyplot(fig)
 
 # หน้า Feature Importance
-elif page == "🔥 Feature Importance":
+elif page == "🔥 ความสำคัญของฟีเจอร์":
     st.title("🔥 Feature Importance")
     st.write("แสดงความสำคัญของ Feature ในการทำนายการเลิกใช้บริการ")
     
@@ -117,11 +146,24 @@ elif page == "🔥 Feature Importance":
     plt.ylabel("Feature")
     st.pyplot(fig)
 
+# หน้า ผู้จัดทำ
+elif page == "👨‍💻 ผู้จัดทำ":
+    st.title("👨‍💻 ผู้จัดทำ")
+    st.write("ข้อมูลเกี่ยวกับผู้จัดทำของโปรเจคนี้")
+
+    # ข้อมูลผู้จัดทำ
+    st.write("1. นายนภสินธุ์ ศรีบุรินทร์  653450290-8")
+    st.write("2. นายนันธวัฒน์ แผ่ความดี 653450291-6")
+    st.write("3. นายอนันตสิน สังชัย 653450516-8")
+
+    # สามารถเพิ่มข้อมูลอื่น ๆ ที่เกี่ยวข้องได้ เช่น แนวคิดหรืออธิบายโครงงาน
+    st.write("โปรเจคนี้เป็นการพัฒนา Web App ที่สามารถทำนายการเลิกใช้บริการของลูกค้า โดยใช้โมเดล Machine Learning ที่ได้รับการฝึกฝนจากข้อมูลลูกค้า.")
+
 # เพิ่ม Footer
 st.markdown(
     """
     <div class="footer">
-        <p>© 2025 Customer Churn Prediction Web App | Developed by Your Name</p>
+        <p>© 2025 Customer Churn Prediction Web App | Developed by Gus Not F</p>
     </div>
     """,
     unsafe_allow_html=True
